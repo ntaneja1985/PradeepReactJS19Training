@@ -21,13 +21,16 @@ let newArr = arr.map((val,index)=>{
 
 console.log(newArr);
 
-let students = [{name:'nishant',marks:'37'},{name:'nalin',marks:'35'}];
+let students = [{name:'nishant',marks:'37'},{name:'nalin',marks:'35'},{name:'jay',marks:'40'}];
 
-let filteredStudents = students.map((student,index)=>(
+let filteredStudents = students
+    .filter(x=>x.marks > 35)
+    .map((student,index)=>(
 
     {...student,remark:'pass'
 }
 ));
+
 console.log(filteredStudents)
 
 function add(x,y,...remainingNumbers)
