@@ -8,7 +8,7 @@ function DiscountOffer() {
 
     const [offerPrice,setOfferPrice] = useState(getRandomOffer());
     const [isChecked, setIsChecked] = useState(false);
-    const handleChange = (e) =>{
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
         setIsChecked(e.target.checked);
     }
     useEffect(()=> {

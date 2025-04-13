@@ -1,4 +1,7 @@
-export const  productList =[
+import {Category, Product} from "./types.ts";
+
+
+export const  productList: Product[] =[
     {
         productId: 101,
         productName:"Mouse",
@@ -22,7 +25,9 @@ export const  productList =[
     }
 ]
 
-export const categoryList = [
+export const categoryList : Category[] = [
     {id: 1, categoryName:"Electronics"},
     {id: 2, categoryName:"Furniture"}
 ]
+
+export default categoryList

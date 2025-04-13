@@ -353,3 +353,206 @@ function ProductList() {
 export default ProductList
 
 ```
+
+## Routing in React
+- Routing in React enables navigation between different views or pages in a single-page application (SPA) without full page reloads. 
+- React itself doesn’t include built-in routing, so libraries like React Router DOM are commonly used.
+- npm install react router DOM
+```js
+import React from 'react'
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import ProductDetail from "./ProductDetail";
+import Databinding from "../src/Databinding";
+import DiscountOffer from "./DiscountOffer";
+import ProductList from "./ProductList";
+import Search from "./Search";
+import Navbar from "./Navbar";
+
+function Layout() {
+    return (
+        <>
+          <BrowserRouter>
+              <Navbar/>
+              <Routes>
+                  <Route path="/" element={<Search/>} />
+                  <Route path="/products" element={<Search/>} />
+                  <Route path="/databinding" element={<Databinding/>} />
+                  <Route path="*" element={<Databinding/>} />
+              </Routes>
+          </BrowserRouter>
+        </>
+    )
+}
+
+export default Layout
+
+```
+- To navigate between components we can set up a Navbar component and use NavLink from React-Router-DOM
+```js
+import {NavLink} from "react-router-dom";
+
+
+function Navbar() {
+    return (
+        <>
+            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+                <div className="container-fluid">
+                    <a className="navbar-brand" href="#">Navbar</a>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <div className="collapse navbar-collapse" id="navbarNav">
+                        <ul className="navbar-nav">
+                           <NavLink to='/databinding' className='nav-link'>Data Binding</NavLink>
+                            <NavLink to='/offer' className='nav-link'>Offer</NavLink>
+                            <NavLink to='/products' className='nav-link'>Products</NavLink>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </>
+    )
+}
+
+export default Navbar
+
+```
+- ![img_7.png](img_7.png)
+- To pass data from child to parent we use callback functions
+- In the below code we are passing data from child to parent through onNotifyCount() method
+```js
+import  {useState} from 'react'
+import {categoryList} from '../src/data/data'
+import ProductList from "./ProductList";
+
+function Search() {
+    const categories = categoryList;
+    const [selectedCategory,setSelectedCategory] = useState("");
+
+    const handleCategoryChange = (event) => {
+        setSelectedCategory(prev => event.target.value);
+    }
+
+    const onUpdateCount = (message:string) =>{
+        alert(message);
+    }
+
+    return (
+        <>
+            <p>Category selected is {selectedCategory}</p>
+        <h4>Search Product</h4>
+            Filter:
+            <select onChange={(e)=>handleCategoryChange(e)}>
+                <option value="">--Select--</option>
+                {categories.map((cat)=>{
+                    return (
+                        <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+                    )
+                })}
+            </select>
+            <hr/>
+            <ProductList selectedCategory = {selectedCategory} onNotify={(event)=>onUpdateCount(event)} />
+        </>
+    )
+}
+
+export default Search
+
+
+import  {useEffect, useState} from 'react'
+import {productList} from "../src/data/data"
+import ProductDetail from "./ProductDetail.tsx";
+
+
+function ProductList({selectedCategory, onNotify}) {
+    let products = productList;
+    const [filteredProducts,setFilteredProducts] = useState(products);
+    const selectedCategory1 = selectedCategory;
+
+    useEffect(() => {
+        console.log('use Effect triggered');
+        console.log(products);
+        console.log(selectedCategory1);
+
+        if (selectedCategory1) {
+            setFilteredProducts(
+                products.filter(f => f.category == selectedCategory)
+            )
+            //products = products.filter(f => f.category == selectedCategory)
+        } else {
+            //products = products
+            setFilteredProducts(products)
+        }
+        onNotify(filteredProducts.length);
+    }, [selectedCategory1]);
+    return (
+        <>
+            <table style={{ border:"1px solid black" }}>
+                <thead>
+                    <tr>
+                        <th>Product Id</th>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th>Product Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredProducts.map((product) => (
+                        <ProductDetail key={product.productId} product={product} />
+                    ))}
+                </tbody>
+            </table>
+        </>
+    )
+}
+
+export default ProductList
+
+
+```
+- useParams() is used to read the route parameter
+- useNavigate() is used to navigate from one route to another
+- To get parameters from queryString use the following code:
+```js
+ const loc = useLocation();
+const queryParams = new URLSearchParams(loc.search);
+const city = queryParams.get("city");
+const country = queryParams.get("country");
+```
+- ![img_8.png](img_8.png)
+
+## Lazy Loading
+- Download the component on demand based on requested URL
+- For this we use the Suspense component of React along with lazy keyword
+- Rather than import directly from the top we use the lazy keyword along with import keyword
+```js
+function Layout() {
+
+    const Databinding = lazy(()=> import('../src/Databinding.tsx'))
+    const DiscountOffer = lazy(()=> import('./DiscountOffer.tsx'))
+    const Search = lazy(()=> import('./Search.tsx'))
+    const ProductView = lazy(()=> import('./ProductView.tsx'))
+
+    return (
+        <>
+            <BrowserRouter>
+                <Navbar/>
+                <Suspense fallback={(<div>Loading...</div>)}>
+                    <Routes>
+                        <Route path="/" element={<Search/>} />
+                        <Route path="/products" element={<Search/>} />
+                        <Route path="/offer" element={<DiscountOffer/>} />
+                        <Route path="/databinding" element={<Databinding/>} />
+                        <Route path="*" element={<Databinding/>} />
+                        <Route path="/product-view/:id" element={<ProductView/>} />
+                    </Routes>
+                </Suspense>
+            </BrowserRouter>
+        </>
+    )
+}
+
+export default Layout
+```

@@ -1,9 +1,6 @@
-// import { useState } from 'react'
+
 import './App.css'
-import DiscountOffer from '../components/DiscountOffer'
-import Databinding from './Databinding'
-import ProductList from "../components/ProductList.tsx";
-import Search from "../components/Search.tsx";
+import Layout from "../components/Layout.tsx";
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -11,9 +8,7 @@ function App() {
   return (
    <div>
        <h4>This is my first app</h4>
-       {/*<Databinding/>*/}
-       {/*<DiscountOffer/>*/}
-       <Search/>
+       <Layout/>
    </div>
   )
 }

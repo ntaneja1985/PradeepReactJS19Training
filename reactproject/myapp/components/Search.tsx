@@ -1,14 +1,17 @@
-import React, {useState} from 'react'
-import {categoryList} from "../src/data"
+import  {useState} from 'react'
+import {categoryList} from '../src/data/data'
 import ProductList from "./ProductList";
 
 function Search() {
     const categories = categoryList;
     const [selectedCategory,setSelectedCategory] = useState("");
-
+    const [totalRecords,setTotalRecords] = useState("");
     const handleCategoryChange = (event) => {
         setSelectedCategory(prev => event.target.value);
+    }
 
+    const onUpdateCount = (message:string) =>{
+       setTotalRecords('Total Count: '+message);
     }
 
     return (
@@ -25,7 +28,10 @@ function Search() {
                 })}
             </select>
             <hr/>
-            <ProductList/>
+            <ProductList selectedCategory = {selectedCategory} onNotify={(event)=>onUpdateCount(event)} />
+            {totalRecords && (<div className='text-success align-content-lg-end'>{totalRecords}</div>)}
+
+
         </>
     )
 }
