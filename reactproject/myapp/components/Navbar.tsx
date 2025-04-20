@@ -17,6 +17,9 @@ function Navbar() {
                            <NavLink to='/databinding' className='nav-link'>Data Binding</NavLink>
                             <NavLink to='/offer' className='nav-link'>Offer</NavLink>
                             <NavLink to='/products' className='nav-link'>Products</NavLink>
+                            <NavLink to='/uncontrolled' className='nav-link'>Uncontrolled Form</NavLink>
+                            <NavLink to='/controlled' className='nav-link'>Controlled Form</NavLink>
+                            <NavLink to='/formik' className='nav-link'>Formik Form</NavLink>
                         </ul>
                     </div>
                 </div>
