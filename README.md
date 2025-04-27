@@ -1379,6 +1379,19 @@ const UserProfile: React.FC = () => {
 export default UserProfile;
 ```
 
+### Using async-await to getAllProducts
+```ts
+const getAllProducts = async (): Promise<Product[]> => {
+    try {
+        const resp = await axios.get<Product[]>(`https://localhost:7283/api/ProductApi/getall`)
+        return resp.data;
+    }
+    catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+```
 
 
 
