@@ -16,6 +16,8 @@ node_modules/
 
 
 
+
+
 # Ignore temporary files
 
 *.swp
@@ -23,3 +25,79 @@ node_modules/
 *.tmp
 
 *~
+
+# .NET Core / .NET 5+ Web API
+bin/
+obj/
+*.csproj.user
+*.pubxml
+*.pubxml.user
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.docstates
+
+# Build and Publish Output
+bin/*
+obj/*
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+[Dd]ebug/
+[Rr]elease/
+*.dll
+*.pdb
+*.exe
+
+# NuGet Packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Environment and Configuration Files
+appsettings.Development.json
+appsettings.Production.json
+appsettings.*.json
+.env
+secrets.json
+*.config
+*.config.*.backup
+
+# Logs
+*.log
+logs/
+Logs/
+
+# User-specific files
+*.user
+*.userprefs
+
+# Visual Studio / Rider / VS Code
+.vscode/
+.idea/
+*.sln.iml
+*.vs/
+*.vssscc
+*.vsconfig
+*.cache
+
+# Testing
+[Tt]est[Rr]esult*/
+[Cc]overage/
+coverage.*
+*.trx
+*.xml
+testresults/
+
+# Database Files
+*.mdf
+*.ldf
+*.sdf
+*.sqlite
+*.db
+
+# Temporary Files
+*.tmp
+*.bak
+*.cache

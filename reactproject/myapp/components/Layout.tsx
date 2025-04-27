@@ -6,6 +6,7 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 // import ProductView from "./ProductView.tsx";
 import {lazy, Suspense} from "react";
 import Navbar from "./Navbar.tsx";
+import Products from "./Products.tsx";
 // import ControlledForm from "./ControlledForm.tsx";
 // import UncontrolledForm from "./UncontrolledForm.tsx";
 // import Search from "./Search.tsx";
@@ -36,6 +37,7 @@ function Layout() {
                   <Route path="/uncontrolled" element={<UncontrolledForm/>} />
                   <Route path="/controlled" element={<ControlledForm/>} />
                   <Route path="/formik" element={<FormikForm/>} />
+                  <Route path="/productsApi" element={<Products/>} />
               </Routes>
               </Suspense>
           </BrowserRouter>

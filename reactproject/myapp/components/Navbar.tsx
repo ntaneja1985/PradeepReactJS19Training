@@ -20,6 +20,7 @@ function Navbar() {
                             <NavLink to='/uncontrolled' className='nav-link'>Uncontrolled Form</NavLink>
                             <NavLink to='/controlled' className='nav-link'>Controlled Form</NavLink>
                             <NavLink to='/formik' className='nav-link'>Formik Form</NavLink>
+                            <NavLink to='/productsApi' className='nav-link'>Product List from Web API</NavLink>
                         </ul>
                     </div>
                 </div>

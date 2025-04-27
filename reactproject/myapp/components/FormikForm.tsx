@@ -2,6 +2,7 @@ import {ErrorMessage, Field, Form, Formik, FormikFormProps} from "formik";
 import categoryList from "../src/data/data.ts";
 // import {customError} from "../utilities/validation.ts";
 import * as Yup from 'yup';
+import productService from "../services/Product.service.ts";
 
 
 function FormikForm() {
@@ -18,7 +19,14 @@ function FormikForm() {
     const categories = categoryList;
 
     const handleSaveProduct = (frm: FormikFormProps) =>{
-        alert('Product saved successfully' + JSON.stringify(frm));
+        console.log(frm)
+        productService.addProduct(frm)
+            .then(response => {
+                if(response){
+                    alert("Product Added");
+                }
+            })
+        //alert('Product saved successfully' + JSON.stringify(frm));
     }
 
     // const validateFn = (frm) =>{
