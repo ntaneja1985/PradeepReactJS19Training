@@ -185,7 +185,9 @@ add(1,2,3,4,5,6,7,8,9);
 - Can do bundling, minification very fast
 - It can spin up dev server faster
 - It supports HMR(Hot Module Replacement)
-- npm create vite@latest myapp --template react
+```shell
+npm create vite@latest my-react-app -- --template react-ts
+```
 - Vite bundles the code into es standard
 - NPM resolves inter-dependencies
 - NPM(Node package manager) used for downloading and sharing the js/css package from public repository
@@ -1049,6 +1051,7 @@ export default FormikForm
 - We will add the axios package
 - We will create a webapi with CRUD operations
 - Then we will create a service to perform the CRUD operations on the UI
+- axios is used to make http request from browser
 ```ts
 import axios from "axios";
 
@@ -1091,6 +1094,7 @@ const ProductService = {
 export default ProductService
 ```
 - Axios allows us to add interceptors, Remember the Bearer Authorization Token for sending JWT token
+- Interceptors allow us to add custom logic to the request/response.
 ```ts
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
@@ -1393,6 +1397,494 @@ const getAllProducts = async (): Promise<Product[]> => {
 }
 ```
 
+## Global State Management in React
+- It is used to avoid prop drilling
+- We will have a centralized location to store state
+- We make use of **Context API**
+- It is a way to pass data throughout the component tree without passing it through the apps
+- We can make this information available in any component
+- For e.g the Login Component(Welcome, User)
+- Context API provides a way to pass data through the component tree without having props passed from one component to another
+- It eliminates problem of Prop Drilling
+- State management with useContext and a Provider in React lets you share global state (like user data) across components without prop drilling. 
+- useContext accesses the context value, and a Provider supplies it to child components.
+- Create Context(UserContext.tsx)
+- ![img_9.png](img_9.png)
+- ![img_10.png](img_10.png)
+- ![img_11.png](img_11.png)
+```ts
+import { createContext, useContext, ReactNode, useState } from 'react';
+
+// User type
+interface User {
+  id: string;
+  name: string;
+}
+
+// Context value type
+interface UserContextType {
+  user: User | null;
+  login: (user: User) => void;
+  logout: () => void;
+}
+
+// Create context
+export const UserContext = createContext<UserContextType | undefined>(undefined);
+
+// Custom hook for safe access
+export const useUser = () => {
+  const context = useContext(UserContext);
+  if (!context) throw new Error('useUser must be inside UserProvider');
+  return context;
+};
+
+// Provider component
+export function UserProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  const login = (user: User) => setUser(user);
+  const logout = () => setUser(null);
+
+  return (
+    <UserContext.Provider value={{ user, login, logout }}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+```
+- Consume Context
+```ts
+import { useUser } from './UserContext';
+
+function AuthComponent() {
+  const { user, login, logout } = useUser();
+
+  const handleLogin = () => login({ id: '1', name: 'John Doe' });
+
+  return (
+    <div>
+      {user ? (
+        <>
+          <p>Welcome, {user.name}!</p>
+          <button onClick={logout}>Logout</button>
+        </>
+      ) : (
+        <button onClick={handleLogin}>Login</button>
+      )}
+    </div>
+  );
+}
+
+export default AuthComponent;
+```
+- Wrap App(App.tsx)
+```ts
+import { UserProvider } from './UserContext';
+import AuthComponent from './AuthComponent';
+
+function App() {
+  return (
+    <UserProvider>
+      <h1>Auth App</h1>
+      <AuthComponent />
+    </UserProvider>
+  );
+}
+
+export default App;
+```
+- Context: UserContext holds the state (user, login, logout).
+- Provider: UserProvider manages state with useState and provides it to children.
+- Consumer: AuthComponent uses useUser to access and update the state.
+- We can extend this by saving this user inside session storage like this
+```ts
+function setAuthUser(user){
+    sessionStorage.setItem("authUser", JSON.stringify(user));
+}
+
+function getUser(){
+    let currentUser = null
+    if(sessionStorage["authUser"] !==  null){
+        currentUser = JSON.parse(sessionStorage.getItem("authUser"));
+    }
+    return currentUser;
+}
+
+function removeAuthUser(){
+    sessionStorage.removeItem("authUser");
+}
+
+const AuthService = {
+    setAuthUser,getUser,removeAuthUser
+}
+
+export default AuthService
+```
+- We can also wrap our Browser Router with this UserContext Provider inside Layout.tsx
+```ts
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {lazy, Suspense} from "react";
+import Navbar from "./Navbar.tsx";
+import Products from "./Products.tsx";
+import Login from "./Login.tsx";
+import UserProvider from "../context/UserProvider.tsx";
+
+function Layout() {
+
+    const Databinding = lazy(()=> import('../src/Databinding.tsx'))
+    const DiscountOffer = lazy(()=> import('./DiscountOffer.tsx'))
+    const Search = lazy(()=> import('./Search.tsx'))
+    const ProductView = lazy(()=> import('./ProductView.tsx'))
+    const UncontrolledForm = lazy(()=> import('./UncontrolledForm.tsx'))
+    const ControlledForm = lazy(()=> import('./ControlledForm.tsx'))
+    const FormikForm = lazy(()=> import('./FormikForm.tsx'))
+    return (
+        <>
+          <BrowserRouter>
+              <UserProvider>
+              <Navbar/>
+              <Suspense fallback={(<div>Loading...</div>)}>
+              <Routes>
+                  <Route path="/" element={<Search/>} />
+                  <Route path="/products" element={<Search/>} />
+                  <Route path="/offer" element={<DiscountOffer/>} />
+                  <Route path="/databinding" element={<Databinding/>} />
+                  <Route path="*" element={<Databinding/>} />
+                  <Route path="/product-view/:id" element={<ProductView/>} />
+                  <Route path="/uncontrolled" element={<UncontrolledForm/>} />
+                  <Route path="/controlled" element={<ControlledForm/>} />
+                  <Route path="/formik" element={<FormikForm/>} />
+                  <Route path="/productsApi" element={<Products/>} />
+                  <Route path="/login" element={<Login/>} />
+              </Routes>
+              </Suspense>
+              </UserProvider>
+          </BrowserRouter>
+        </>
+    )
+}
+
+export default Layout
+
+```
+# Understanding React Class Components
+
+## Introduction
+
+React class components are a fundamental way to create components in React, particularly before the introduction of functional components with hooks in React 16.8. Class components are ES6 classes that extend `React.Component` or `React.PureComponent` and are used to manage state, handle lifecycle methods, and render UI. They are still widely used in legacy codebases and certain scenarios requiring complex lifecycle management.
+
+### Key Features of Class Components
+
+- **State Management**: Class components can hold and manage local state using `this.state` and `this.setState`.
+- **Lifecycle Methods**: They provide methods like `componentDidMount`, `componentDidUpdate`, and `componentWillUnmount` for handling side effects.
+- **Instance Methods**: You can define custom methods within the class for handling events or logic.
+- **TypeScript Support**: In TypeScript, class components require explicit type definitions for props and state.
+
+### When to Use Class Components
+
+- Maintaining legacy React applications.
+- Needing complex lifecycle methods not easily replicated with hooks.
+- Preference for class-based syntax in specific projects.
+
+> **Note**: Functional components with hooks are now preferred for new React projects due to their simplicity and conciseness.
+
+## Example: Class Component in TypeScript
+
+Below is an example of a React class component written in TypeScript (`.tsx`). This component demonstrates state management, event handling, refs, and destructuring state, addressing common use cases like the one you encountered with `const { fullName, address } = this.state;`.
+
+### Prerequisites
+
+- Node.js and npm/yarn installed.
+- A React project with TypeScript configured.
+- Install required dependencies:
+  ```bash
+  npm install react react-dom @types/react @types/react-dom
+  ```
+
+### Code Example
+
+Create a file named `DataBinding   `DataBindingClass.tsx`:
+
+```tsx
+import { Component } from "react";
+
+// Define interfaces for props and state
+interface DataBindingProps {}
+interface DataBindingState {
+  fullName: string;
+  firstName: string;
+  address: string;
+}
+
+class DataBindingClass extends Component<DataBindingProps, DataBindingState> {
+  private addressRef: React.RefObject<HTMLInputElement>;
+
+  constructor(props: DataBindingProps) {
+    super(props);
+    this.state = {
+      fullName: "Nishant Taneja",
+      firstName: "Nishant",
+      address: "",
+    };
+
+    this.addressRef = React.createRef<HTMLInputElement>();
+    this.handleTextChange = this.handleTextChange.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleTextChange(event: React.ChangeEvent<HTMLInputElement>) {
+    this.setState({ address: event.target.value });
+  }
+
+  handleClick(event: React.MouseEvent<HTMLInputElement>) {
+    console.log("Button clicked!", this.state);
+  }
+
+  render() {
+    const { fullName, address } = this.state;
+    const name = "Test";
+
+    return (
+      <div>
+        <h5>This is my component</h5>
+        <p>My name is {name}</p>
+        <p>Full Name is {fullName}</p>
+        <i>Full name is {fullName}</i>
+        <input
+          type="text"
+          ref={this.addressRef}
+          placeholder="Enter address"
+        />
+        <input
+          type="text"
+          value={address}
+          onChange={this.handleTextChange}
+          placeholder="Enter text"
+        />
+        <input
+          type="button"
+          value="Click me"
+          onClick={this.handleClick}
+        />
+      </div>
+    );
+  }
+}
+
+export default DataBindingClass;
+```
+
+### Using the Component
+
+In your main application file (e.g., `App.tsx`), import and render the component:
+
+```tsx
+import DataBindingClass from "./DataBindingClass";
+
+function App() {
+  return (
+    <div>
+      <DataBindingClass />
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Explanation of the Code
+
+1. **Interfaces**:
+    - `DataBindingProps`: Defines the props (empty in this case).
+    - `DataBindingState`: Types the state with `fullName`, `firstName`, and `address` as strings.
+
+2. **Constructor**:
+    - Initializes state with default values.
+    - Creates a ref for the input using `React.createRef`.
+    - Binds methods to ensure `this` refers to the component instance.
+
+3. **Event Handlers**:
+    - `handleTextChange`: Updates the `address` state when the input changes.
+    - `handleClick`: Logs state to the console when the button is clicked.
+
+4. **Render Method**:
+    - Destructures `fullName` and `address` from `this.state` for easy access.
+    - Renders a UI with static text, a controlled input, an uncontrolled input with a ref, and a button.
+
+5. **TypeScript Specifics**:
+    - Uses `React.RefObject<HTMLInputElement>` for the ref.
+    - Types event handlers with `React.ChangeEvent` and `React.MouseEvent`.
+
+### Running the Example
+
+1. Ensure your `tsconfig.json` is configured for React:
+   ```json
+   {
+     "compilerOptions": {
+       "jsx": "react",
+       "esModuleInterop": true,
+       "strict": true
+     }
+   }
+   ```
+
+2. Start your development server:
+   ```bash
+   npm start
+   ```
+
+3. Open your browser to see the component rendered. You should see:
+    - Text displaying `fullName` and a static `name`.
+    - Two input fields: one for address (controlled) and one with a ref.
+    - A button that logs state to the console when clicked.
+
+## Lifecycle Methods
+
+Class components shine with lifecycle methods. Here’s an example of adding `componentDidMount` to fetch data:
+
+```tsx
+componentDidMount() {
+  console.log("Component mounted!");
+  // Example: Fetch data
+  // fetch("https://api.example.com/data")
+  //   .then((res) => res.json())
+  //   .then((data) => this.setState({ fullName: data.name }));
+}
+```
+
+Common lifecycle methods:
+- `componentDidMount`: Runs after the component is added to the DOM.
+- `componentDidUpdate`: Runs after props or state changes.
+- `componentWillUnmount`: Runs before the component is removed.
+
+## Best Practices
+
+- **Always bind methods** in the constructor or use arrow functions to avoid `this` issues.
+- **Use interfaces** in TypeScript to type props and state.
+- **Keep state minimal** to avoid unnecessary re-renders.
+- **Use refs sparingly**; prefer controlled components for form inputs.
+- **Test components** with tools like Jest and React Testing Library.
+
+## Troubleshooting
+
+- **Destructuring errors**: Ensure all state properties are defined in the state interface and initialized in the constructor.
+- **TypeScript errors**: Verify `@types/react` and `@types/react-dom` are installed.
+- **Rendering issues**: Check the console for errors and use React Developer Tools to inspect state and props.
+
+## Further Reading
+
+- [React Official Docs: Components and Props](https://reactjs.org/docs/components-and-props.html)
+- [TypeScript with React](https://www.typescriptlang.org/docs/handbook/jsx.html)
+- [React Lifecycle Methods](https://reactjs.org/docs/state-and-lifecycle.html)
+
+This example should help you understand and implement React class components effectively in a TypeScript project.
+
+### My example
+```ts
+import {Component} from "react";
+
+class ProductListClass extends Component  {
+    constructor(props) {
+        super(props);
+        this.state = {
+            filteredProducts : []
+        }
+    }
+    //use Effect (() => {},[selectedCategory])
+    componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<{}>, snapshot?: any) {
+        const {selectedCategory,myname, onNotify} = this.props;
+        if(prevProps.selectedCategory !== selectedCategory){
+            const filtered = selectedCategory ? products.filter(f =>f.category == selectedCategory) : products;
+            this.setState({filteredProducts : filtered});
+        }
+    }
+
+    //use Effect (() => {},[]) useEffect with blank array
+    componentDidMount() {
+
+    }
+    // use Effect return syntax for cleanup
+    componentWillUnmount() {
+    }
+}
+
+
+import React, { Component } from "react";
+
+// Define the interface for component state
+interface DataBindingState {
+    fullName: string;
+    firstName: string;
+    address: string;
+}
+
+// Define the interface for component props (empty if no props are used)
+interface DataBindingProps {}
+
+class DataBindingClass extends Component<DataBindingProps, DataBindingState> {
+    constructor(props: DataBindingProps) {
+        super(props);
+        this.state = {
+            fullName: "Nishant Taneja",
+            firstName: "Nishant",
+            address: "", // Ensure address is defined
+        };
+
+        // Bind methods
+        this.handleTextChange = this.handleTextChange.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+
+        // Create ref with proper type
+        this.addressRef = React.createRef<HTMLInputElement>();
+    }
+
+    // Define ref type
+    private addressRef: React.RefObject<HTMLInputElement>;
+
+    // Type the event for input change
+    handleTextChange(event: React.ChangeEvent<HTMLInputElement>) {
+        this.setState({ address: event.target.value });
+    }
+
+    // Type the event for button click
+    handleClick(event: React.MouseEvent<HTMLInputElement>) {
+        console.log("Button clicked!", this.state);
+    }
+
+    render() {
+        // Destructuring state with proper types
+        const { fullName, address } = this.state;
+        const name = "Test";
+
+        return (
+            <div>
+                <h5>This is my component</h5>
+        <p>My name is {name}</p>
+        <p>Full Name is {fullName}</p>
+        <i>Full name is {fullName}</i>
+        <input
+        type="text"
+        ref={this.addressRef}
+        placeholder="Enter address"
+        />
+        <input
+            type="text"
+        value={address}
+        onChange={this.handleTextChange}
+        placeholder="Enter text"
+        />
+        <input
+            type="button"
+        value="Click me"
+        onClick={this.handleClick}
+        />
+        </div>
+    );
+    }
+}
+
+export default DataBindingClass;
+```
 
 
 

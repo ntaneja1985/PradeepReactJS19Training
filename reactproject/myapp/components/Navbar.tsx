@@ -1,7 +1,10 @@
 import {NavLink} from "react-router-dom";
+import {useUser} from "../context/UserProvider.tsx";
 
 
 function Navbar() {
+
+    const { currentUser,logoutClick } = useUser();
     return (
         <>
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -13,7 +16,10 @@ function Navbar() {
                         <span className="navbar-toggler-icon"></span>
                     </button>
                     <div className="collapse navbar-collapse" id="navbarNav">
-                        <ul className="navbar-nav">
+                        {
+                            (currentUser?.username) ?
+                                (
+                        <div className="navbar-nav">
                            <NavLink to='/databinding' className='nav-link'>Data Binding</NavLink>
                             <NavLink to='/offer' className='nav-link'>Offer</NavLink>
                             <NavLink to='/products' className='nav-link'>Products</NavLink>
@@ -21,7 +27,12 @@ function Navbar() {
                             <NavLink to='/controlled' className='nav-link'>Controlled Form</NavLink>
                             <NavLink to='/formik' className='nav-link'>Formik Form</NavLink>
                             <NavLink to='/productsApi' className='nav-link'>Product List from Web API</NavLink>
-                        </ul>
+                            <NavLink to='/login' className='nav-link'>Login Form</NavLink>
+                            <a onClick={logoutClick}>Welcome {currentUser.username}</a>
+                        </div>
+                                )
+                                : <NavLink to='/login' className='nav-link'>Login</NavLink>
+                        }
                     </div>
                 </div>
             </nav>

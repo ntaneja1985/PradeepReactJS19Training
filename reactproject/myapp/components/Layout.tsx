@@ -7,6 +7,8 @@ import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {lazy, Suspense} from "react";
 import Navbar from "./Navbar.tsx";
 import Products from "./Products.tsx";
+import Login from "./Login.tsx";
+import UserProvider from "../context/UserProvider.tsx";
 // import ControlledForm from "./ControlledForm.tsx";
 // import UncontrolledForm from "./UncontrolledForm.tsx";
 // import Search from "./Search.tsx";
@@ -25,6 +27,7 @@ function Layout() {
     return (
         <>
           <BrowserRouter>
+              <UserProvider>
               <Navbar/>
               <Suspense fallback={(<div>Loading...</div>)}>
               <Routes>
@@ -38,8 +41,10 @@ function Layout() {
                   <Route path="/controlled" element={<ControlledForm/>} />
                   <Route path="/formik" element={<FormikForm/>} />
                   <Route path="/productsApi" element={<Products/>} />
+                  <Route path="/login" element={<Login/>} />
               </Routes>
               </Suspense>
+              </UserProvider>
           </BrowserRouter>
         </>
     )
