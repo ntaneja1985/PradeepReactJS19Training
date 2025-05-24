@@ -3,6 +3,8 @@ import {Field, Form, Formik, ErrorMessage} from "formik";
 import * as Yup from 'yup';
 import {useState} from "react";
 import {useUser} from "../context/UserProvider.tsx";
+import AuthService from "../services/Auth.service.ts";
+import {useNavigate} from "react-router-dom";
 
 function Login() {
 
@@ -12,7 +14,9 @@ function Login() {
     }
 
     const [message, setMessage] = useState("");
-    const { loginClick } = useUser(); // Safe destructuring
+    const { loginClick } = useUser();
+    const navigate = useNavigate();
+    // Safe destructuring
 
     const loginValidationSchema = {
         username: Yup.string().required("Username is required"),
@@ -25,7 +29,19 @@ function Login() {
             setMessage("")
             debugger;
             const user = { username: frm.username, password: frm.password };
-            loginClick(user);
+            //loginClick(user);
+            AuthService.authenticate(frm)
+                .then(response =>{
+                    if(response.status === 200){
+                        setMessage("User logged in");
+                        loginClick(response.data);
+                        navigate('/databinding');
+                    }
+                    else {
+                        setMessage("User not logged in");
+                    }
+
+                })
         } else {
             setMessage("User cannot login")
         }

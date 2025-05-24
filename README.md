@@ -1885,7 +1885,1267 @@ class DataBindingClass extends Component<DataBindingProps, DataBindingState> {
 
 export default DataBindingClass;
 ```
+### Context API
+- Provides a way to pass data through the component tree without having props passed
+- It eliminate the problem of props drilling
+- This pattern is useful for managing global state related to user authentication and session management in a React application
+
+#### Steps to implement Context API
+
+- Use createContext() to define your context
+  export const UserContext = createContext(null);
+
+- Create a component "UserProvider" to provide the Context.
+
+```js
+export function UserProvider({children}){
+
+  const [currentUser, setCurrentUser] = useState()
+
+  return(
+  <UserContext.Provider value={{currentUser}}>
+  {children}
+  </UserContext.Provider>
+  )
+  }
+```
+  
+- Wrap Your App with the Provider in Layout.jsx or App.jsx
+```js
+  <UserProvider>
+  <Navbar />
+  <Suspense fallback={<div>Loading......</div>}>
+  <Routes>
+  <Route path="/databinding" element={<Databind />} />
+  ....
+  </UserProvider>
+```
+- Consume the context in child component using useContext() hook
+```js
+  const { currentUser} = useContext(UserContext);
+```
+
+### Functional Components vs Class Component
+
+#### State Management:
+- useState()
+  -this.state & this.setState()
+
+#### Lifecycle Management:
+-useEffect(()=>{}, []), useEffect(()=>{}, [deps]), useEffect(()=>{ return ()=> {} }, [deps]),
+-componentDidMount, componentDidUpdate componentWillUnmount
+
+#### Refs:
+-useRef()
+-React.createRef()
 
 
+## State Management using Redux
+- Centralized way of managing global state in the Application
+- Has a specific pattern that needs to be followed when we want to update some state
+- Redux Toolkit internally uses ImmerJS library to modify immutable objects in a mutable way
+- We have some specific terms: Action, Reducer, Store, Dispatcher
+- ![img_12.png](img_12.png)
+- ![img_13.png](img_13.png)
+- ![img_14.png](img_14.png)
+- 2 flavors of redux: React-Redux and Redux-Toolkit
+```shell
+npm install @reduxjs/toolkit
+```
+- Action: A javascript object that has a type and a payload
+- FilterProduct, payload: {searchText:"search", category: "1"}
+- Reducer: A function that receives the current state and an action as argument
+- It can update the current state and create a new state
+- It acts like an event listener which handles events based on action provided.
+- Store: Maintains the current state of object
+- Dispatcher: Store is having one method called as dispatch.
+- Calling dispatch is the only way to pass the action to your store
+
+# React Redux Toolkit Example
+
+This is a complete example of a React application using Redux Toolkit to manage state. The app implements a simple counter feature to demonstrate the core concepts of Redux Toolkit, including store configuration, slices, and integration with React components. The project uses Tailwind CSS for styling and is structured to run in a browser via CDN-hosted dependencies.
+
+## Project Overview
+The application consists of:
+- A counter feature with increment, decrement, and increment-by-amount actions.
+- Redux Toolkit to manage the counter state.
+- React components to display and interact with the counter.
+- Tailwind CSS for responsive styling.
+
+Below is the complete code for the project, with detailed comments explaining each step.
+
+## File Structure
+- `index.html`: The main HTML file containing the React app and Redux setup.
+- No additional files are needed since we're using CDNs for dependencies.
+
+## Complete Code
+
+### index.html
+This file sets up the React app, Redux store, and renders the counter component.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Redux Toolkit Counter</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React and ReactDOM CDNs -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <!-- Redux and Redux Toolkit CDNs -->
+  <script src="https://cdn.jsdelivr.net/npm/@reduxjs/toolkit@1.9.5/dist/redux-toolkit.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-redux@8.1.1/dist/react-redux.min.js"></script>
+  <!-- Babel for JSX transformation -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/Babel.min.js"></script>
+</head>
+<body>
+  <!-- Root element for React app -->
+  <div id="root" class="min-h-screen bg-gray-100 flex items-center justify-center"></div>
+
+  <script type="text/babel">
+    // Step 1: Import necessary dependencies from CDNs
+    const { createSlice, configureStore } = ReduxToolkit;
+    const { Provider, useDispatch, useSelector } = ReactRedux;
+    const { createRoot } = ReactDOM;
+    const { useState } = React;
+
+    // Step 2: Create a Redux slice for the counter feature
+    // A slice combines reducers, actions, and initial state
+    const counterSlice = createSlice({
+      name: 'counter', // Name of the slice
+      initialState: {
+        value: 0 // Initial state of the counter
+      },
+      // Reducers define how state changes in response to actions
+      reducers: {
+        increment: (state) => {
+          state.value += 1; // Mutate state directly (Immer handles immutability)
+        },
+        decrement: (state) => {
+          state.value -= 1;
+        },
+        incrementByAmount: (state, action) => {
+          state.value += action.payload; // Payload is the amount to increment by
+        }
+      }
+    });
+
+    // Step 3: Export actions to dispatch from components
+    const { increment, decrement, incrementByAmount } = counterSlice.actions;
+
+    // Step 4: Configure the Redux store
+    // The store holds the entire state tree of the app
+    const store = configureStore({
+      reducer: {
+        counter: counterSlice.reducer // Add counter slice reducer to the store
+      }
+    });
+
+    // Step 5: Create the Counter component
+    const Counter = () => {
+      // Use useSelector to access the counter value from the store
+      const count = useSelector((state) => state.counter.value);
+      // Use useDispatch to dispatch actions
+      const dispatch = useDispatch();
+      // Local state for the input field
+      const [incrementAmount, setIncrementAmount] = useState('2');
+
+      return (
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+          <h1 className="text-2xl font-bold mb-4 text-center">Redux Toolkit Counter</h1>
+          <div className="flex items-center justify-center mb-4">
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-l hover:bg-blue-600"
+              onClick={() => dispatch(decrement())}
+            >
+              -
+            </button>
+            <span className="text-xl mx-4">{count}</span>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600"
+              onClick={() => dispatch(increment())}
+            >
+              +
+            </button>
+          </div>
+          <div className="flex items-center justify-center">
+            <input
+              type="text"
+              value={incrementAmount}
+              onChange={(e) => setIncrementAmount(e.target.value)}
+              className="border p-2 rounded w-20 mr-2 text-center"
+              placeholder="Amount"
+            />
+            <button
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              onClick={() => dispatch(incrementByAmount(Number(incrementAmount) || 0))}
+            >
+              Add Amount
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // Step 6: Create the App component
+    // Wraps the Counter component with the Redux Provider
+    const App = () => {
+      return (
+        <Provider store={store}>
+          <Counter />
+        </Provider>
+      );
+    };
+
+    // Step 7: Render the app to the DOM
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+```
+
+## Explanation of Key Concepts
+
+### 1. **Redux Toolkit**
+- **What is it?**: Redux Toolkit is the official, recommended way to write Redux logic. It simplifies Redux setup by providing utilities like `createSlice` and `configureStore`.
+- **Why use it?**: It reduces boilerplate, handles immutability with Immer, and includes best practices out of the box.
+- **Key components**:
+   - `createSlice`: Combines state, reducers, and actions into a single object.
+   - `configureStore`: Sets up the Redux store with good defaults (e.g., Redux DevTools support).
+
+### 2. **Counter Slice**
+- The `counterSlice` defines:
+   - **Initial state**: `{ value: 0 }`.
+   - **Reducers**: Functions (`increment`, `decrement`, `incrementByAmount`) that specify how the state changes.
+   - **Actions**: Automatically generated by `createSlice` and used to trigger state changes.
+
+### 3. **Store Setup**
+- The `configureStore` function creates a Redux store that holds the app's state.
+- The store combines all slice reducers (in this case, just `counterSlice.reducer`).
+
+### 4. **React-Redux Integration**
+- **Provider**: Wraps the app to make the Redux store available to all components.
+- **useSelector**: Retrieves state from the store (e.g., the counter value).
+- **useDispatch**: Provides a dispatch function to send actions to the store.
+
+### 5. **Counter Component**
+- Displays the current count and provides buttons to modify it.
+- Uses local state (`useState`) for the input field to demonstrate combining React state with Redux.
+- Dispatches actions (`increment`, `decrement`, `incrementByAmount`) to update the Redux store.
+
+### 6. **Styling with Tailwind CSS**
+- Tailwind CSS is used via CDN for quick, responsive styling.
+- Classes like `bg-blue-500`, `p-6`, and `rounded-lg` style the UI without writing custom CSS.
+
+## How to Run
+1. Save the `index.html` code above into a file named `index.html`.
+2. Open the file in a web browser (no server required since all dependencies are CDN-based).
+3. Interact with the counter:
+   - Click "+" to increment the count.
+   - Click "-" to decrement the count.
+   - Enter a number and click "Add Amount" to increment by that amount.
+
+## Notes
+- **CDN Usage**: The app uses CDNs for React, Redux Toolkit, React-Redux, Tailwind CSS, and Babel to keep it self-contained.
+- **Babel**: Transforms JSX into JavaScript in the browser using `type="text/babel"`.
+- **Immutability**: Redux Toolkit uses Immer internally, allowing "mutable" syntax in reducers while ensuring immutability.
+- **No Form Submission**: The app avoids `<form>` tags due to sandbox restrictions, using a button and input instead.
+
+## Next Steps
+- Add more features (e.g., reset button, async actions with `createAsyncThunk`).
+- Explore Redux Toolkit's advanced features like middleware or RTK Query for API calls.
+- Convert to a full project with Node.js and local dependencies for production
+- ![img_15.png](img_15.png)
+- ![img_16.png](img_16.png)
+- Flow of Data in Redux
+- ![img_19.png](img_19.png)
+- ![img_17.png](img_17.png)
+- Flow of Data in Zustand
+- ![img_18.png](img_18.png)
+
+# JWT Authentication and Route Protection in a React App with TypeScript
+
+This guide explains how JSON Web Token (JWT) authentication works in a React application using TypeScript and demonstrates how to protect routes using `react-router-dom` to ensure only authenticated and authorized users can access specific pages. The code includes a fully functional React app with login, protected routes, and role-based authorization, written in TypeScript for type safety.
+
+## Understanding JWT Authentication
+
+**JWT Structure**:
+- A JWT consists of three parts: **Header**, **Payload**, and **Signature**, encoded in Base64 and joined by dots (`.`).
+    - **Header**: Specifies the algorithm (e.g., HS256) and token type (JWT).
+    - **Payload**: Contains claims like user ID, roles, and expiration time (`exp`).
+    - **Signature**: Verifies the token's integrity using a secret key.
+- Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6ImFkbWluIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c`
+
+**Authentication Flow**:
+1. User submits credentials (username/password) via a login form.
+2. The server validates credentials, generates a JWT, and returns it.
+3. The client stores the JWT (e.g., in `localStorage`).
+4. For protected API calls, the JWT is included in the `Authorization` header as `Bearer <token>`.
+5. The server verifies the JWT’s signature and checks its validity (e.g., not expired).
+6. On the client, protected routes check for a valid JWT and, optionally, user roles.
+
+**Route Protection**:
+- Use `react-router-dom` to define routes.
+- Create a `ProtectedRoute` component to check for a valid JWT and user roles.
+- Redirect unauthenticated users to the login page and unauthorized users (e.g., non-admins) to an unauthorized page.
+
+## Project Setup
+
+This example uses:
+- **React with TypeScript** using `react-router-dom` for routing.
+- **Axios** for API calls with typed responses.
+- **Context API** to manage authentication state with TypeScript interfaces.
+- **localStorage** to store the JWT (for simplicity; use HTTP-only cookies in production for security).
+- **Mock API** endpoints for demonstration (replace with your backend).
+
+### Prerequisites
+- Node.js installed.
+- Run `npm create vite@latest my-jwt-app -- --template react-ts` to set up a React TypeScript project with Vite.
+- Install dependencies: `npm install react-router-dom axios @types/react-router-dom`.
+
+## Code Implementation
+
+Below is the complete TypeScript code for a React app with JWT authentication and protected routes.
+
+### 1. Project Structure
+```
+src/
+├── components/
+│   ├── Login.tsx
+│   ├── Home.tsx
+│   ├── Dashboard.tsx
+│   ├── AdminDashboard.tsx
+│   ├── Unauthorized.tsx
+│   ├── ProtectedRoute.tsx
+├── context/
+│   ├── AuthContext.ts
+├── App.tsx
+├── main.tsx
+├── index.css
+├── types.ts
+```
+
+### 2. Type Definitions (`types.ts`)
+Defines interfaces for the project.
+
+```typescript
+// src/types.ts
+export interface User {
+  id: string;
+  role: 'user' | 'admin';
+}
+
+export interface AuthContextType {
+  user: User | null;
+  login: (username: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  loading: boolean;
+}
+```
+
+### 3. Main Application (`App.tsx`)
+Defines the routes and layout of the app.
+
+```typescript
+// src/App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Login from './components/Login';
+import Home from './components/Home';
+import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
+import Unauthorized from './components/Unauthorized';
+import ProtectedRoute from './components/ProtectedRoute';
+import './index.css';
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="min-h-screen bg-gray-100">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/unauthorized" element={<Unauthorized />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
+```
+
+### 4. Authentication Context (`AuthContext.ts`)
+Manages authentication state with TypeScript types.
+
+```typescript
+// src/context/AuthContext.ts
+import { createContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
+import { AuthContextType, User } from '../types';
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Check for existing token on mount
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Mock decoding; in production, verify with backend
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser({ id: payload.sub, role: payload.role });
+      } catch (e) {
+        localStorage.removeItem('token');
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      // Replace with your API endpoint
+      const response = await axios.post<{ token: string }>('https://your-api.com/login', {
+        username,
+        password,
+      });
+      const { token } = response.data;
+      localStorage.setItem('token', token);
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUser({ id: payload.sub, role: payload.role });
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export { AuthContext, AuthProvider };
+```
+
+### 5. Login Component (`Login.tsx`)
+Handles user login with typed form inputs.
+
+```typescript
+// src/components/Login.tsx
+import { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { AuthContextType } from '../types';
+
+function Login() {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const { login } = useContext(AuthContext) as AuthContextType;
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock login for demo (replace with actual API call)
+    const mockToken =
+      username === 'admin' && password === 'admin'
+        ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6ImFkbWluIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        : username === 'user' && password === 'user'
+        ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6InVzZXIifQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        : null;
+
+    if (mockToken) {
+      localStorage.setItem('token', mockToken);
+      const payload = JSON.parse(atob(mockToken.split('.')[1]));
+      await login(username, password); // Simulates API call
+      navigate(payload.role === 'admin' ? '/admin' : '/dashboard');
+    } else {
+      setError('Invalid credentials');
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Enter username (admin or user)"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="Enter password (admin or user)"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default Login;
+```
+
+### 6. Protected Route Component (`ProtectedRoute.tsx`)
+Ensures only authenticated and authorized users access specific routes.
+
+```typescript
+// src/components/ProtectedRoute.tsx
+import { useContext } from 'react';
+import { Navigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { AuthContextType } from '../types';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRole: 'user' | 'admin';
+}
+
+function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const { user, loading } = useContext(AuthContext) as AuthContextType;
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user.role !== requiredRole) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+export default ProtectedRoute;
+```
+
+### 7. Home Component (`Home.tsx`)
+Public page accessible to all users.
+
+```typescript
+// src/components/Home.tsx
+import { Link } from 'react-router-dom';
+
+function Home() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-4">Welcome to the App</h1>
+        <p className="mb-4">
+          Please <Link to="/login" className="text-blue-500 hover:underline">log in</Link> to continue.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default Home;
+```
+
+### 8. Dashboard Component (`Dashboard.tsx`)
+Accessible to authenticated users (role: user or admin).
+
+```typescript
+// src/components/Dashboard.tsx
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { AuthContextType } from '../types';
+
+function Dashboard() {
+  const { user, logout } = useContext(AuthContext) as AuthContextType;
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md">
+        <h2 className="text-2xl font-bold mb-4">User Dashboard</h2>
+        <p>Welcome, {user?.id} (Role: {user?.role})</p>
+        <button
+          onClick={handleLogout}
+          className="mt-4 bg-red-500 text-white p-2 rounded hover:bg-red-600"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default Dashboard;
+```
+
+### 9. Admin Dashboard Component (`AdminDashboard.tsx`)
+Accessible only to users with the `admin` role.
+
+```typescript
+// src/components/AdminDashboard.tsx
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { AuthContextType } from '../types';
+
+function AdminDashboard() {
+  const { user, logout } = useContext(AuthContext) as AuthContextType;
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded shadow-md">
+        <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
+        <p>Welcome, {user?.id} (Role: {user?.role})</p>
+        <p>This is an admin-only page.</p>
+        <button
+          onClick={handleLogout}
+          className="mt-4 bg-red-500 text-white p-2 rounded hover:bg-red-600"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default AdminDashboard;
+```
+
+### 10. Unauthorized Component (`Unauthorized.tsx`)
+Displayed when a user lacks the required role.
+
+```tsx
+// src/components/Unauthorized.tsx
+import { Link } from 'react-router-dom';
+
+function Unauthorized() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-4">Unauthorized</h2>
+        <p>You do not have permission to access this page.</p>
+        <p>
+          <Link to="/" className="text-blue-500 hover:underline">Return to Home</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default Unauthorized;
+```
+
+### 11. CSS (`index.css`)
+Basic styling using Tailwind CSS (included via CDN in `index.html`).
+
+```css
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### 12. Entry Point (`main.tsx`)
+Renders the app.
+
+```tsx
+// src/main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+```
+
+### 13. HTML Entry Point (`index.html`)
+Includes React, React Router, Axios, and Tailwind CSS via CDNs.
+
+```html
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JWT Auth React App (TypeScript)</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.9/Babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+## How to Run
+
+1. **Set Up Project**:
+    - Create a new React TypeScript project: `npm create vite@latest my-jwt-app -- --template react-ts`.
+    - Navigate to the project: `cd my-jwt-app`.
+    - Install dependencies: `npm install react-router-dom axios @types/react-router-dom`.
+
+2. **Copy Files**:
+    - Replace the contents of `src/` and `index.html` with the provided code.
+    - Ensure the folder structure matches the one outlined, including `types.ts`.
+
+3. **Run the App**:
+    - Start the development server: `npm run dev`.
+    - Open `http://localhost:5173` in your browser.
+
+4. **Test the App**:
+    - Use `username: admin, password: admin` to access the admin dashboard (`/admin`).
+    - Use `username: user, password: user` to access the user dashboard (`/dashboard`).
+    - Attempt to access `/admin` as a non-admin user to see the unauthorized page.
+
+## Notes
+- **Mock API**: The login component uses mock tokens for demonstration. Replace the mock logic in `Login.tsx` with an actual API call to your backend (e.g., `https://your-api.com/login`).
+- **Security**: Storing JWTs in `localStorage` is used for simplicity. In production, use HTTP-only cookies to mitigate XSS attacks.
+- **Token Validation**: The example decodes the JWT client-side for simplicity. In production, verify tokens server-side and use refresh tokens for better security.
+- **Backend**: Ensure your backend generates JWTs with a payload containing `sub` (user ID) and `role` (e.g., `user` or `admin`).
+- **TypeScript**: The code includes type safety for props, state, and context. Ensure your backend API response types match the defined interfaces.
+
+## Example API Response
+Your backend should return a JWT like:
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6ImFkbWluIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+}
+```
+
+## Troubleshooting
+- **CORS Issues**: Ensure your backend allows CORS for your frontend origin.
+- **Token Expiration**: Handle expired tokens by implementing refresh tokens or redirecting to login.
+- **Dependencies**: Ensure all CDNs are accessible or install dependencies locally via npm.
+- **TypeScript Errors**: Verify that all types are correctly defined, especially for API responses and context.
+
+This TypeScript implementation provides a secure, type-safe foundation for JWT authentication and route protection in a React app.
+
+# JWT Authentication and ProtectedRoute Diagrams in a React App
+
+This document provides diagrammatic representations of how JSON Web Token (JWT) authentication works in a React application and how the `ProtectedRoute` component ensures that only authenticated and authorized users can access specific routes. The diagrams are created using Mermaid.js and can be rendered in Markdown viewers that support Mermaid (e.g., GitHub, VS Code with plugins). Below, you'll find two flowcharts with explanations, based on the TypeScript implementation provided earlier.
+
+## Diagram 1: JWT Authentication Flow
+
+This flowchart illustrates the process of user authentication using JWT in a React app, including login, token storage, and authenticated API requests.
+
+### Explanation
+- **User Login**: The user submits credentials (username/password) via a login form.
+- **Server Validation**: The server verifies the credentials and generates a JWT if valid.
+- **Token Storage**: The client stores the JWT (e.g., in `localStorage`).
+- **Authenticated Requests**: For subsequent API calls, the client includes the JWT in the `Authorization` header.
+- **Server Verification**: The server validates the JWT's signature and checks its expiration.
+- **Response**: The server returns the requested data if the JWT is valid, or an error if invalid.
+
+### Mermaid Diagram
+```mermaid
+graph TD
+    A[User enters username/password in Login Form] --> B[Client sends credentials to Server]
+    B --> C{Server validates credentials}
+    C -->|Valid| D[Server generates JWT]
+    C -->|Invalid| E[Server returns error]
+    D --> F[Client receives JWT]
+    E --> G[Client displays error message]
+    F --> H[Client stores JWT in localStorage]
+    H --> I[User makes request to protected API]
+    I --> J[Client includes JWT in Authorization header]
+    J --> K{Server verifies JWT}
+    K -->|Valid| L[Server processes request]
+    K -->|Invalid/Expired| M[Server returns error]
+    L --> N[Client receives response]
+    M --> O[Client handles error, e.g., redirect to login]
+```
+
+## Diagram 2: ProtectedRoute Workflow
+
+This flowchart shows how the `ProtectedRoute` component in a React app (using `react-router-dom`) checks for authentication and authorization to protect routes.
+
+### Explanation
+- **Route Access Attempt**: The user tries to access a protected route (e.g., `/dashboard` or `/admin`).
+- **Loading Check**: The component checks if the authentication state is still loading (e.g., fetching token).
+- **Authentication Check**: Verifies if a user is authenticated by checking for a valid JWT and user object.
+- **Authorization Check**: If a specific role is required (e.g., `admin`), it checks if the user has the correct role.
+- **Redirects**: Unauthenticated users are redirected to the login page, and unauthorized users are redirected to an unauthorized page.
+- **Access Granted**: If all checks pass, the protected component (e.g., `Dashboard` or `AdminDashboard`) is rendered.
+
+### Mermaid Diagram
+```mermaid
+graph TD
+    A[User attempts to access protected route] --> B{Is auth state loading?}
+    B -->|Yes| C[Show loading indicator]
+    B -->|No| D{Is user authenticated?}
+    D -->|No| E[Redirect to /login]
+    D -->|Yes| F{Is specific role required?}
+    F -->|No| G[Render protected component]
+    F -->|Yes| H{Does user have required role?}
+    H -->|Yes| G
+    H -->|No| I[Redirect to /unauthorized]
+```
+
+## How to View Diagrams
+- **Render Mermaid Diagrams**: Copy this Markdown file into a Mermaid-compatible viewer:
+    - **GitHub**: Create a `.md` file in a GitHub repository; GitHub renders Mermaid diagrams natively.
+    - **VS Code**: Use a Markdown preview extension with Mermaid support (e.g., "Markdown Preview Mermaid Support").
+    - **Other Tools**: Use tools like Mermaid Live Editor (https://mermaid.live) by pasting the Mermaid code.
+- **Code Reference**: These diagrams align with the TypeScript implementation provided in the earlier response. Refer to the `Login.tsx`, `AuthContext.ts`, and `ProtectedRoute.tsx` files for code details.
+
+## Notes
+- **JWT Security**: The diagrams assume JWTs are stored in `localStorage` for simplicity. In production, use HTTP-only cookies to prevent XSS attacks.
+- **Backend Integration**: The authentication flow assumes a backend API that validates credentials and issues JWTs. Replace mock logic in `Login.tsx` with actual API calls.
+- **ProtectedRoute**: The `ProtectedRoute` component uses the `AuthContext` to access the user’s authentication state and role, ensuring type-safe checks in TypeScript.
+
+These diagrams provide a clear visual representation of the JWT authentication process and route protection mechanism in a React app.
+
+## Using Axios Interceptors to include JWT token in the header for each request
+```ts
+import axios from "axios";
+import {Config} from "./constants";
+import AuthService from "../services/Auth.service";
+
+const axiosClient = axios.create({
+    baseURL: Config.BASE_URL,
+    timeout: 5000,
+    headers:{
+        "Content-Type": "application/json"
+    }
+
+})
+
+axiosClient.interceptors.request.use((config)=>{
+    const user = AuthService.getUser()
+    if(user){
+        config.headers.Authorization = `Bearer ${user.token}`
+    }
+    return config;
+},(error)=>{
+    Promise.reject(error);
+    console.log(error);
+})
+
+axiosClient.interceptors.response.use(
+    (response: AxiosResponse) => {
+        // Handle successful responses
+        return response;
+    },
+    (error: AxiosError) => {
+        // Handle errors
+        if (error.response && error.response.status === 401) {
+            // Ensure window is defined (for browser-only environments)
+            if (typeof window !== 'undefined') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+
+export default axiosClient;
+```
+# React Optimizations
+
+When a parent component renders in React, its child components (and their children) are re-rendered by default due to React's recursive rendering process. 
+This happens even if the child components' props or state haven't changed. To display static information in the parent component without triggering child renders, you can use optimization techniques like memoization, conditional rendering, or state management. 
+Below, I explain why this happens and provide solutions to achieve your goal.
+
+
+## Why Child Components Re-render
+- **React's Rendering Behavior**: When a parent component re-renders (e.g., due to state or prop changes), React re-evaluates the entire component tree, causing child components to render unless optimized.
+- **Goal**: Prevent child components from rendering unnecessarily and display static content in the parent component.
+
+## Solutions to Prevent Child Component Re-rendering
+
+### 1. Use `React.memo` for Child Components
+`React.memo` memoizes a functional component, preventing re-renders if props remain unchanged (via shallow comparison).
+
+**Example**:
+```typescript
+import React, { memo } from 'react';
+
+// Child Component
+const ChildComponent = memo(({ data }: { data: string }) => {
+  console.log('ChildComponent rendered');
+  return <div>{data}</div>;
+});
+
+// Parent Component
+const ParentComponent: React.FC = () => {
+  console.log('ParentComponent rendered');
+  const staticData = 'Static Information';
+  const [count, setCount] = React.useState(0);
+
+  return (
+    <div>
+      <h1>{staticData}</h1>
+      <button onClick={() => setCount(count + 1)}>Increment: {count}</button>
+      <ChildComponent data="Child Data" />
+    </div>
+  );
+};
+
+export default ParentComponent;
+```
+
+**How It Works**:
+- `React.memo` ensures `ChildComponent` only re-renders if its `data` prop changes.
+- When `ParentComponent` re-renders (e.g., due to `count` state change), `ChildComponent` skips rendering because `data` is static.
+- **Console Output**: Logs `ParentComponent rendered` on each button click, but `ChildComponent rendered` only on initial render.
+
+**When to Use**:
+- Child components with stable props that don't need frequent updates.
+- Ensure props are primitive or stabilized (see Solution 2 for complex props).
+
+**Caveat**:
+- For objects, arrays, or functions as props, use `useMemo` or `useCallback` to prevent new instances from triggering re-renders.
+
+### 2. Use `useMemo` to Stabilize Props
+If passing objects, arrays, or functions to child components, use `useMemo` to memoize them, as new instances can trigger re-renders even with `React.memo`.
+
+**Example**:
+```typescript
+import React, { memo, useMemo } from 'react';
+
+const ChildComponent = memo(({ config }: { config: { name: string } }) => {
+  console.log('ChildComponent rendered');
+  return <div>{config.name}</div>;
+});
+
+const ParentComponent: React.FC = () => {
+  console.log('ParentComponent rendered');
+  const [count, setCount] = React.useState(0);
+  const config = useMemo(() => ({ name: 'Static Name' }), []);
+
+  return (
+    <div>
+      <h1>Static Information</h1>
+      <button onClick={() => setCount(count + 1)}>Increment: {count}</button>
+      <ChildComponent config={config} />
+    </div>
+  );
+};
+
+export default ParentComponent;
+```
+
+**How It Works**:
+- `useMemo` creates a stable `config` object that doesn’t change on re-renders (empty dependency array `[]`).
+- `ChildComponent` (with `memo`) skips re-rendering because `config` is stable.
+- Only `ParentComponent` re-renders when `count` changes.
+
+**When to Use**:
+- Passing non-primitive props (objects, arrays) to memoized child components.
+- Combine with `React.memo` for optimal performance.
+
+### 3. Conditionally Render Child Components
+To prevent child components from rendering at all, exclude them from the render tree using a conditional check.
+
+**Example**:
+```typescript
+import React from 'react';
+
+const ChildComponent: React.FC = () => {
+  console.log('ChildComponent rendered');
+  return <div>Child Content</div>;
+};
+
+const ParentComponent: React.FC = () => {
+  console.log('ParentComponent rendered');
+  const [count, setCount] = React.useState(0);
+  const showChildren = false;
+
+  return (
+    <div>
+      <h1>Static Information</h1>
+      <button onClick={() => setCount(count + 1)}>Increment: {count}</button>
+      {showChildren && <ChildComponent />}
+    </div>
+  );
+};
+
+export default ParentComponent;
+```
+
+**How It Works**:
+- `showChildren` is `false`, so `ChildComponent` is not included in the render tree.
+- Only static content (`<h1>Static Information</h1>`) is rendered.
+- Parent re-renders on `count` change, but no child components are involved.
+
+**When to Use**:
+- When you explicitly want to skip rendering child components entirely.
+- Ideal for static parent content with optional child rendering.
+
+# useCallback vs useMemo Hook in React
+
+Both `useCallback` and `useMemo` are React hooks used to optimize performance by memoizing values or functions, preventing unnecessary re-renders. However, they serve different purposes.
+
+## `useCallback` Hook
+- **Purpose**: Memoizes a callback function to prevent it from being recreated on every render unless dependencies change.
+- **Use Case**: When passing callbacks to child components to avoid unnecessary re-renders.
+- **Syntax**: `const memoizedCallback = useCallback(() => {...}, [dependencies])`
+
+### Example
+```jsx
+import React, { useState, useCallback } from 'react';
+
+function Child({ onClick }) {
+  console.log('Child rendered');
+  return <button onClick={onClick}>Click me</button>;
+}
+
+function Parent() {
+  const [count, setCount] = useState(0);
+
+  // Memoized callback, only recreated if count changes
+  const handleClick = useCallback(() => {
+    console.log('Button clicked');
+  }, [count]);
+
+  return (
+    <div>
+      <Child onClick={handleClick} />
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
+    </div>
+  );
+}
+
+```
+
+Explanation: handleClick is memoized with useCallback. 
+The Child component doesn't re-render unnecessarily when count changes unless handleClick's dependencies change.
+
+useMemo Hook
+Purpose: Memoizes a computed value to avoid recalculating it on every render unless dependencies change.
+Use Case: For expensive computations (e.g., filtering, sorting) to optimize performance.
+Syntax: const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b])
+
+```jsx
+import React, { useState, useMemo } from 'react';
+
+function ExpensiveComponent() {
+  const [count, setCount] = useState(0);
+  const [otherState, setOtherState] = useState(0);
+
+  // Memoized expensive computation
+  const expensiveValue = useMemo(() => {
+    console.log('Computing expensive value...');
+    return count * 1000; // Simulate expensive calculation
+  }, [count]);
+
+  return (
+    <div>
+      <p>Expensive Value: {expensiveValue}</p>
+      <button onClick={() => setCount(count + 1)}>Increment Count</button>
+      <button onClick={() => setOtherState(otherState + 1)}>Other State: {otherState}</button>
+    </div>
+  );
+}
+```
+Explanation: expensiveValue is recalculated only when count changes, not when otherState changes, preventing unnecessary computations.
+- ![img_20.png](img_20.png)
+### When to Use
+- Use useCallback for functions passed as props to memoized components.
+- Use useMemo for computationally expensive values or results.
+
+
+
+# `useState` vs `useReducer` in React
+
+Both `useState` and `useReducer` are React hooks used to manage state in functional components, but they differ in complexity, use cases, and how they handle state updates. Below is a concise comparison with examples.
+
+## `useState` Hook
+- **Purpose**: Manages simple state updates for independent values.
+- **Use Case**: Best for local, straightforward state (e.g., form inputs, toggles).
+- **Syntax**: `const [state, setState] = useState(initialState)`
+- **Update**: Directly set new state with `setState`.
+
+### Example
+```jsx
+import React, { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+- Explanation: useState manages a single count value. Updates are simple and direct.
+## useReducer Hook
+- Purpose: Manages complex state logic with a reducer function, ideal for multiple related state transitions.
+- Use Case: Best for complex state objects or when state transitions depend on actions (e.g., forms with multiple fields, state machines).
+- Syntax: const [state, dispatch] = useReducer(reducer, initialState)
+- Update: Dispatch actions to a reducer, which determines the new state.
+
+```jsx
+import React, { useReducer } from 'react';
+
+const initialState = { count: 0 };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return { count: state.count + 1 };
+    case 'decrement':
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, initialState);
+
+  return (
+    <div>
+      <p>Count: {state.count}</p>
+      <button onClick={() => dispatch({ type: 'increment' })}>Increment</button>
+      <button onClick={() => dispatch({ type: 'decrement' })}>Decrement</button>
+    </div>
+  );
+}
+```
+- ![img_21.png](img_21.png)
+
+### When to Use
+- Use useState: For simple, independent state updates (e.g., a single counter, form input).
+- Use useReducer: For complex state with multiple related updates or when logic is better centralized in a reducer (e.g., managing a form with multiple fields).
+- Hybrid Approach: You can combine them (e.g., use useState for simple fields, useReducer for complex form logic).
+- Note: useReducer is more powerful but adds complexity. Use useState unless the state logic justifies useReducer.
+
+# Error Boundaries in React
+
+**Error Boundaries** are React components that catch JavaScript errors in their child component tree, preventing the entire app from crashing. They help display a fallback UI (e.g., an error message) when an error occurs.
+
+## Key Points
+- **Purpose**: Catch errors during rendering, lifecycle methods, or constructors in child components.
+- **How It Works**: Uses special lifecycle methods (`componentDidCatch` or `static getDerivedStateFromError`) to handle errors.
+- **Limitations**: Does not catch errors in event handlers, async code, or server-side rendering.
+
+## Simple Example
+```jsx
+import React, { Component } from 'react';
+
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true }; // Update state to show fallback UI
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong!</h1>; // Fallback UI
+    }
+    return this.props.children; // Render children if no error
+  }
+}
+
+// Component that might throw an error
+function BuggyComponent() {
+  throw new Error('I crashed!');
+  return <div>Never renders</div>;
+}
+
+// Using the Error Boundary
+function App() {
+  return (
+    <ErrorBoundary>
+      <BuggyComponent />
+    </ErrorBoundary>
+  );
+}
+
+```
+
+### Explanation
+- ErrorBoundary: Wraps BuggyComponent and catches any errors it throws.
+- Fallback UI: If an error occurs, <h1>Something went wrong!</h1> is shown instead of crashing the app.
+- Normal Case: If no error, BuggyComponent would render normally (if it didn’t throw).
+- ![img_22.png](img_22.png)
+
+### When to Use
+- Wrap critical parts of your app (e.g., routes, major sections) to ensure errors don’t break the entire UI.
+- Use for user-friendly error messages or logging errors to a service.
+- Note: Only class components can be error boundaries. For functional components, use libraries like react-error-boundary.
 
 

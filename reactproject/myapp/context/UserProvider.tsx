@@ -1,6 +1,9 @@
 import {useNavigate} from "react-router-dom";
 import {createContext, ReactNode, useContext, useState} from "react";
 import AuthService from "../services/Auth.service.ts";
+import {useSelector} from "react-redux";
+import {authActions} from "../src/actions/auth.actions.ts";
+import store from "../src/store/store.ts";
 
 interface UserProviderProps {
     children: ReactNode;
@@ -32,18 +35,21 @@ export const useUser = (): UserContextType => {
     return context;
 };
 function UserProvider({ children }: UserProviderProps) {
-    const [currentUser, setCurrentUser] = useState<User | null>(AuthService.getUser());
+    //const [currentUser, setCurrentUser] = useState<User | null>(AuthService.getUser());
+    const currentUser = useSelector(state =>state.authReducer.currentUser);
     const navigate = useNavigate();
 
     const loginClick = (user: User) => {
         debugger;
-        setCurrentUser(user);
-        AuthService.setAuthUser(user);
+        store.dispatch(authActions.login(user));
+        //setCurrentUser(user);
+        //AuthService.setAuthUser(user);
     };
 
     const logoutClick = () => {
-        setCurrentUser(null);
-        AuthService.removeAuthUser();
+        //setCurrentUser(null);
+        //AuthService.removeAuthUser();
+        store.dispatch(authActions.logout());
         navigate('/login');
     };
 

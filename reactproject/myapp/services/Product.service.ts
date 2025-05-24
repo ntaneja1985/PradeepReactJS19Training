@@ -1,5 +1,6 @@
 import axios from "axios";
 import {Product} from "../src/data/types.ts";
+import axiosClient from "../helpers/axiosClient.ts";
 
 const getAllProducts = async (): Promise<Product[]> => {
     try {
@@ -13,7 +14,7 @@ const getAllProducts = async (): Promise<Product[]> => {
 }
 
 function addProduct(productToAdd) {
-    return axios.post(`https://localhost:7283/api/ProductApi/add`, JSON.stringify(productToAdd),{
+    return axiosClient.post(`https://localhost:7283/api/ProductApi/add`, JSON.stringify(productToAdd),{
         headers: {
             "Content-Type": "application/json"
         }
@@ -26,7 +27,7 @@ function addProduct(productToAdd) {
 }
 
 function deleteProduct(id) {
-    return axios.delete(`https://localhost:7283/api/ProductApi/delete/${id}`)
+    return axiosClient.delete(`https://localhost:7283/api/ProductApi/delete/${id}`)
         .then(res => res.data)
         .catch(err => {
             console.log(err)
